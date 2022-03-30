@@ -127,7 +127,7 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    print(args)
+    #print(args)
     if args.imgfile:
         detect_img(args.cfgfile, args.weightfile, args.imgfile)
         # detect_imges(args.cfgfile, args.weightfile)
