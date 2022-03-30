@@ -164,7 +164,7 @@ def objects_count(class_name, count, cls_conf, by_class=True):
 def final_rating(count):
   rating = 0
   #Subs hardcoded for activity recognition
-  count_subs = 3
+  count_subs = 0
   if 5 > count['alcohol'] >= 1 :
     rating +=  5
   elif count['alcohol'] >= 5 :
