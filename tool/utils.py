@@ -111,6 +111,9 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
 
     width = img.shape[1]
     height = img.shape[0]
+    
+    count = dict() #for object count
+    print('-----------------------------------')
     for i in range(len(boxes)):
         box = boxes[i]
         x1 = int(box[0] * width)
@@ -126,6 +129,7 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
             cls_conf = box[5]
             cls_id = box[6]
             print('%s: %f' % (class_names[cls_id], cls_conf))
+            objects_count(class_names[cls_id], count, cls_conf)
             classes = len(class_names)
             offset = cls_id * 123457 % classes
             red = get_color(2, offset, classes)
@@ -133,20 +137,47 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
             blue = get_color(0, offset, classes)
             if color is None:
                 rgb = (red, green, blue)
-            msg = str(class_names[cls_id])+" "+str(round(cls_conf,3))
-            t_size = cv2.getTextSize(msg, 0, 0.7, thickness=bbox_thick // 2)[0]
-            c1, c2 = (x1,y1), (x2, y2)
-            c3 = (c1[0] + t_size[0], c1[1] - t_size[1] - 3)
-            cv2.rectangle(img, (x1,y1), (np.float32(c3[0]), np.float32(c3[1])), rgb, -1)
-            img = cv2.putText(img, msg, (c1[0], np.float32(c1[1] - 2)), cv2.FONT_HERSHEY_SIMPLEX,0.7, (0,0,0), bbox_thick//2,lineType=cv2.LINE_AA)
-        
+            cv2.rectangle(img, (x1,y1), (x2, y2), rgb, 1)
+            img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
         img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, bbox_thick)
     if savename:
+        for key, value in count.items():
+            print("{} count: {}".format(key, value))
+        print("Final rating : %d" % final_rating(count))
         print("save plot results to %s" % savename)
         cv2.imwrite(savename, img)
     return img
 
+def objects_count(class_name, count, cls_conf, by_class=True):
+    # if by_class = True then count objects per class
+    if by_class:  
+        # loop through total number of objects found
+        if cls_conf > 0.2 :
+          count[class_name] = count.get(class_name, 0) + 1
 
+    # else count total objects found
+    else:
+        count['total object'] = count.get('total object', 0) + 1
+
+    return count
+  
+def final_rating(count):
+  rating = 0
+  #Subs hardcoded for activity recognition
+  count_subs = 3
+  if 5 > count['alcohol'] >= 1 :
+    rating +=  5
+  elif count['alcohol'] >= 5 :
+    rating += 10
+  if count['smoking'] ==1 :
+    rating += 20
+  elif count['smoking'] > 1 :
+     rating += 25
+  if count_subs ==1 :
+     rating += 50
+  elif count_subs > 1 :
+    rating += 65
+  return rating
 def read_truths(lab_path):
     if not os.path.exists(lab_path):
         return np.array([])
