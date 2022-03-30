@@ -36,11 +36,11 @@ def detect_img(cfgfile, weightfile, imgfile):
 
     num_classes = m.num_classes
     if num_classes == 20:
-        namesfile = 'data/voc.names'
+        namesfile = 'data/classes/voc.names'
     elif num_classes == 80:
-        namesfile = 'data/coco.names'
+        namesfile = 'data/classes/coco.names'
     elif num_classes == 2 :
-        namesfile = 'data/custom.names'
+        namesfile = 'data/classes/custom.names'
     class_names = load_class_names(namesfile)
 
     img = cv2.imread(imgfile)
@@ -83,11 +83,11 @@ def detect_video(cfgfile, weightfile,vidfile):
 
     num_classes = m.num_classes
     if num_classes == 20:
-        namesfile = 'data/voc.names'
+        namesfile = 'data/classes/voc.names'
     elif num_classes == 80:
-        namesfile = 'data/coco.names'
+        namesfile = 'data/classes/coco.names'
     elif num_classes == 2 :
-        namesfile = 'data/custom.names'
+        namesfile = 'data/classes/custom.names'
     class_names = load_class_names(namesfile)
 
     while True:
