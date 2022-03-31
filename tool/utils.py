@@ -94,9 +94,11 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
     
     return np.array(keep)
 
-
+count_alcohol, count_smoking = 0, 0
+detection_time_c1, detection_time_c2 = 0, 0
 
 def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
+    global count_alcohol, count_smoking, detection_time_c1, detection_time_c2
     import cv2
     img = np.copy(img)
     colors = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 1], [0, 1, 0], [1, 1, 0], [1, 0, 0]], dtype=np.float32)
@@ -113,6 +115,7 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
     height = img.shape[0]
     
     count = dict() #for object count
+    seq_frames = 6
     print('-----------------------------------')
     for i in range(len(boxes)):
         box = boxes[i]
@@ -141,12 +144,29 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
             img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
         img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, bbox_thick)
     if savename:
-        for key, value in count.items():
-            print("{} count: {}".format(key, value))
-        print("Final Rating : %d %%" % final_rating(count))
-        print("save plot results to %s" % savename)
+        print("saved plot results to %s" % savename)
         cv2.imwrite(savename, img)
+    for key, value in count.items():
+        print("{} count: {}".format(key, value))
+        print('-----------------------------------')
+    if 'alcohol' in count.keys():
+        count_alcohol += 1
+    if 'smoking' in count.keys():
+        count_smoking += 1
+    # if count_c1 and count_c1 % seq_frames == 0:
+    #     detection_time_c1 += seq_frames/24  # seconds
+    #     # print('organ1-exposure successful detection')
+    #     # print(detection_time_c1)
+    # if count_c2 and count_c2 % seq_frames == 0:
+    #     detection_time_c2 += seq_frames/24
+    #     # print('organ2-exposure successful detection')
+    #     # print(detection_time_c2)
+    # if count_c3 and count_c3 % seq_frames == 0:
+    #     detection_time_c3 += seq_frames/24
+    #     # print('organ3-exposure successful detection')
+    #     # print(detection_time_c3)
     return img
+
 
 def objects_count(class_name, count, cls_conf, by_class=True):
     # if by_class = True then count objects per class
