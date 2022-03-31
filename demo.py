@@ -57,6 +57,7 @@ def detect_img(cfgfile, weightfile, imgfile):
     plot_boxes_cv2(img, boxes[0], savename='predictions.jpg', class_names=class_names)
 
 def detect_video(cfgfile, weightfile,vidfile):
+
     import cv2
     m = Darknet(cfgfile)
 
@@ -66,19 +67,10 @@ def detect_video(cfgfile, weightfile,vidfile):
 
     if use_cuda:
         m.cuda()
+
     #begin video capture
-    cap = cv2.VideoCapture(vidfile)
-    # Check if camera opened successfully
-    if (cap.isOpened()== False):
-        print("Error opening video stream or file")
-    else: 
-        while(cap.isOpened()):
-            # Capture frame-by-frame
-            ret, frame = cap.read()
-           
-    #When everything done, release the video capture object
-    cap.release()
-    #cv2.destroyAllWindows()
+    cap = cv2.VideoCapture(vidfile)    
+    
     print("Starting the YOLO loop...")
 
     num_classes = m.num_classes
@@ -90,8 +82,11 @@ def detect_video(cfgfile, weightfile,vidfile):
         namesfile = 'data/classes/custom.names'
     class_names = load_class_names(namesfile)
 
+    global tot_frames
     while True:
         ret, img = cap.read()
+        if not ret:
+            break
         sized = cv2.resize(img, (m.width, m.height))
         sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
 
@@ -99,13 +94,62 @@ def detect_video(cfgfile, weightfile,vidfile):
         boxes = do_detect(m, sized, 0.4, 0.6, use_cuda)
         finish = time.time()
         print('Predicted in %f seconds.' % (finish - start))
-
-        result_img = plot_boxes_cv2(img, boxes[0], savename='result.avi', class_names=class_names)
-
+        print('FPS: %d ' % int(1 / (finish - start)))
+        tot_frames += 1
+        result_img = plot_boxes_cv2(img, boxes[0], savename=None, class_names=class_names)       
         #cv2.imshow('Yolo demo', result_img)
         cv2.waitKey(1)
 
     cap.release()
+
+def detect_cv2_camera(cfgfile, weightfile, vidfile):
+    import cv2
+    m = Darknet(cfgfile)
+
+    m.print_network()
+    m.load_weights(weightfile)
+    print('Loading weights from %s... Done!' % (weightfile))
+
+    if use_cuda:
+        m.cuda()
+
+    #cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(vidfile)
+    #cap.set(3, 1280)
+    #cap.set(4, 720)
+    print("Starting the YOLO loop...")
+    num_classes = m.num_classes
+    if num_classes == 20:
+        namesfile = 'data/voc.names'
+    elif num_classes == 80:
+        namesfile = 'data/coco.names'
+    else:
+        namesfile = '/content/drive/MyDrive/yolov4/pytorch-YOLOv4/data/obj.names'
+    class_names = load_class_names(namesfile)
+
+    global tot_frames
+    while True:
+        ret, img = cap.read()
+        if not ret:
+            break
+        sized = cv2.resize(img, (m.width, m.height))
+        sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
+
+        start = time.time()
+        boxes = do_detect(m, sized, 0.4, 0.6, use_cuda)
+        finish = time.time()
+        print('Predicted in %f seconds.' % (finish - start))
+        print('FPS: %d ' % int(1 / (finish - start)))
+        tot_frames += 1
+        result_img = plot_boxes_cv2(
+            img, boxes[0], savename=None, class_names=class_names)
+        # result_img = plot_boxes_cv2(img, boxes[0], savename = (str(i) + '.jpg'), class_names=class_names)
+
+        # cv2.imshow('Yolo demo', result_img)
+        cv2.waitKey(1)
+
+    cap.release()
+
 
 def get_args():
     parser = argparse.ArgumentParser('Test your image or video by trained model.')
