@@ -20,7 +20,7 @@ def softmax(x):
 
 
 def bbox_iou(box1, box2, x1y1x2y2=True):
-    
+
     # print('iou box1:', box1)
     # print('iou box2:', box2)
 
@@ -91,17 +91,20 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
 
         inds = np.where(over <= nms_thresh)[0]
         order = order[inds + 1]
-    
+
     return np.array(keep)
+
 
 count_alcohol, count_smoking = 0, 0
 detection_time_c1, detection_time_c2 = 0, 0
 
+
 def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
-    global count_alcohol, count_smoking, detection_time_c1, detection_time_c2
+    global count_alcohol, count_smoking, count_c3, detection_time_c1, detection_time_c2
     import cv2
     img = np.copy(img)
-    colors = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 1], [0, 1, 0], [1, 1, 0], [1, 0, 0]], dtype=np.float32)
+    colors = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 1], [0, 1, 0], [
+                      1, 1, 0], [1, 0, 0]], dtype=np.float32)
 
     def get_color(c, x, max_val):
         ratio = float(x) / max_val * 5
@@ -113,17 +116,17 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
 
     width = img.shape[1]
     height = img.shape[0]
-    
-    count = dict() #for object count
+    count = dict()  # for object count
     seq_frames = 6
-    print('-----------------------------------')
+
+    #print('-----------------------------------')
     for i in range(len(boxes)):
         box = boxes[i]
         x1 = int(box[0] * width)
         y1 = int(box[1] * height)
         x2 = int(box[2] * width)
         y2 = int(box[3] * height)
-        bbox_thick = int(0.6 * (height + width) / 600)
+
         if color:
             rgb = color
         else:
@@ -131,7 +134,11 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
         if len(box) >= 7 and class_names:
             cls_conf = box[5]
             cls_id = box[6]
-            print('%s: %f' % (class_names[cls_id], cls_conf))
+            # algo for checking classes in multi frames
+            # class_array = np.empty(shape=(5,3), dtype = int)
+            # class_array[i] = cls_id
+            # print(class_array)
+            #print('%s: %f' % (class_names[cls_id], cls_conf))
             objects_count(class_names[cls_id], count, cls_conf)
             classes = len(class_names)
             offset = cls_id * 123457 % classes
@@ -140,70 +147,101 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
             blue = get_color(0, offset, classes)
             if color is None:
                 rgb = (red, green, blue)
-            cv2.rectangle(img, (x1,y1), (x2, y2), rgb, 1)
-            img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
-        img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, bbox_thick)
-    if savename:
-        print("saved plot results to %s" % savename)
-        cv2.imwrite(savename, img)
+            img = cv2.putText(
+                img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
+        img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
+    # if savename:
+    #     print("saved plot results to %s" % savename)
+    #     cv2.imwrite(savename, img)
     for key, value in count.items():
-        print("{} count: {}".format(key, value))
-        print('-----------------------------------')
-    if 'alcohol' in count.keys():
-        count_alcohol += 1
-    if 'smoking' in count.keys():
-        count_smoking += 1
-    # if count_c1 and count_c1 % seq_frames == 0:
-    #     detection_time_c1 += seq_frames/24  # seconds
-    #     # print('organ1-exposure successful detection')
-    #     # print(detection_time_c1)
-    # if count_c2 and count_c2 % seq_frames == 0:
-    #     detection_time_c2 += seq_frames/24
-    #     # print('organ2-exposure successful detection')
-    #     # print(detection_time_c2)
-    # if count_c3 and count_c3 % seq_frames == 0:
-    #     detection_time_c3 += seq_frames/24
-    #     # print('organ3-exposure successful detection')
-    #     # print(detection_time_c3)
+         #print("{} count: {}".format(key, value))
+         if 'alcohol' in count.keys():
+             count_alcohol += 1
+         else:
+             count_alcohol = 0
+         if 'smoking' in count.keys():
+             count_smoking += 1
+         else:
+             count_smoking = 0        
+    if count_alcohol and count_alcohol % seq_frames == 0:
+         detection_time_c1 += seq_frames/24  # seconds
+    #     print('alcohol detection')
+    #     print(count_alcohol)
+    if count_smoking and count_smoking % seq_frames == 0:
+         detection_time_c2 += seq_frames/24
+         #print('smoking detection') 
     return img
 
+def module_rating():
+  print(detection_time_c2)
+  rating = 0
+  # Rating of Alcohol and Smoking Part
+  #count_subs = 1
+  if 50 > detection_time_c1 >= 1 :
+     rating +=  5
+  elif detection_time_c1 >= 50 :
+    rating += 10
+  if 50> detection_time_c2 >= 1 :
+    rating += 20
+  elif detection_time_c2 >= 50 :
+    rating += 25
+  # if count_subs ==1 :
+  #     rating += 50
+  # elif count_subs > 1 :
+  #      rating += 65
+  print(rating)   
+  #return rating
 
-def objects_count(class_name, count, cls_conf, by_class=True):
+def detection():
+    import json
+
+    if(detection_time_c1 > 10 and detection_time_c3 > 10): #Full frontal nudity for more than 10 secs
+        moduleRating = 100 #NC17
+    elif(detection_time_c1 > 1 and detection_time_c3 > 1): #Full frontal nudity for more than 1 sec
+        moduleRating = 75 #R
+    elif(detection_time_c1 > 0 or detection_time_c3 > 0): #Brief frontal nudity (1 sec or less)
+        moduleRating = 50 #PG13
+    elif(detection_time_c2 >= 1): #No frontal nudity 
+        moduleRating = 25 #PG
+    else:
+        moduleRating = 0 #G
+
+    data = {"moduleRating": moduleRating,
+            "detectionInstances": []}
+
+    detectInstances = [
+        {"class": "alcohol",
+            "duration": str(detection_time_c1) + " seconds"},
+        {"class": "smoking",
+            "duration": str(detection_time_c2) + " seconds"}]
+       
+    data["detectionInstances"] = detectInstances
+
+    json_object = json.dumps(data, indent=4)
+    with open("/content/result.json", "w") as outfile:
+        outfile.write(json_object)
+
+
+def objects_count(class_name, count,cls_conf, by_class=True):
+
     # if by_class = True then count objects per class
-    if by_class:  
+    if by_class:
         # loop through total number of objects found
-        if cls_conf > 0.2 :
-          count[class_name] = count.get(class_name, 0) + 1
-
+        if cls_conf > 0.75:
+            count[class_name] = count.get(class_name, 0) + 1
     # else count total objects found
     else:
         count['total object'] = count.get('total object', 0) + 1
-
     return count
-  
-def final_rating(count):
-  rating = 0
-  #Subs hardcoded for activity recognition
-  count_subs = 0
-  if 5 > count['alcohol'] >= 1 :
-    rating +=  5
-  elif count['alcohol'] >= 5 :
-    rating += 10
-  if count['smoking'] ==1 :
-    rating += 20
-  elif count['smoking'] > 1 :
-     rating += 25
-  if count_subs ==1 :
-     rating += 50
-  elif count_subs > 1 :
-    rating += 65
-  return rating
+
+
 def read_truths(lab_path):
     if not os.path.exists(lab_path):
         return np.array([])
     if os.path.getsize(lab_path):
         truths = np.loadtxt(lab_path)
-        truths = truths.reshape(truths.size / 5, 5)  # to avoid single truth problem
+        # to avoid single truth problem
+        truths = truths.reshape(truths.size / 5, 5)
         return truths
     else:
         return np.array([])
@@ -217,7 +255,6 @@ def load_class_names(namesfile):
         line = line.rstrip()
         class_names.append(line)
     return class_names
-
 
 
 def post_processing(img, conf_thresh, nms_thresh, output):
@@ -252,7 +289,7 @@ def post_processing(img, conf_thresh, nms_thresh, output):
 
     bboxes_batch = []
     for i in range(box_array.shape[0]):
-       
+
         argwhere = max_conf[i] > conf_thresh
         l_box_array = box_array[i, argwhere, :]
         l_max_conf = max_conf[i, argwhere]
@@ -268,23 +305,24 @@ def post_processing(img, conf_thresh, nms_thresh, output):
             ll_max_id = l_max_id[cls_argwhere]
 
             keep = nms_cpu(ll_box_array, ll_max_conf, nms_thresh)
-            
+
             if (keep.size > 0):
                 ll_box_array = ll_box_array[keep, :]
                 ll_max_conf = ll_max_conf[keep]
                 ll_max_id = ll_max_id[keep]
 
                 for k in range(ll_box_array.shape[0]):
-                    bboxes.append([ll_box_array[k, 0], ll_box_array[k, 1], ll_box_array[k, 2], ll_box_array[k, 3], ll_max_conf[k], ll_max_conf[k], ll_max_id[k]])
-        
+                    bboxes.append([ll_box_array[k, 0], ll_box_array[k, 1], ll_box_array[k, 2],
+                                  ll_box_array[k, 3], ll_max_conf[k], ll_max_conf[k], ll_max_id[k]])
+
         bboxes_batch.append(bboxes)
 
     t3 = time.time()
 
-    print('-----------------------------------')
-    print('       max and argmax : %f' % (t2 - t1))
-    print('                  nms : %f' % (t3 - t2))
-    print('Post processing total : %f' % (t3 - t1))
-    print('-----------------------------------')
-    
+    # print('-----------------------------------')
+    # print('       max and argmax : %f' % (t2 - t1))
+    # print('                  nms : %f' % (t3 - t2))
+    # print('Post processing total : %f' % (t3 - t1))
+    # print('-----------------------------------')
+
     return bboxes_batch
