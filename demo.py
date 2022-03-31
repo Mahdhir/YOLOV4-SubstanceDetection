@@ -131,4 +131,5 @@ if __name__ == '__main__':
         # detect_skimage(args.cfgfile, args.weightfile, args.imgfile)
     elif args.vidfile:
         detect_video(args.cfgfile, args.weightfile, args.vidfile)
+        module_rating()
     

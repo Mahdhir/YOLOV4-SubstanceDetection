@@ -138,7 +138,7 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
             # class_array = np.empty(shape=(5,3), dtype = int)
             # class_array[i] = cls_id
             # print(class_array)
-            #print('%s: %f' % (class_names[cls_id], cls_conf))
+            print('%s: %f' % (class_names[cls_id], cls_conf))
             objects_count(class_names[cls_id], count, cls_conf)
             classes = len(class_names)
             offset = cls_id * 123457 % classes
@@ -173,7 +173,7 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
     return img
 
 def module_rating():
-  print(detection_time_c2)
+  #print(detection_time_c2)
   rating = 0
   # Rating of Alcohol and Smoking Part
   #count_subs = 1
@@ -189,7 +189,7 @@ def module_rating():
   #     rating += 50
   # elif count_subs > 1 :
   #      rating += 65
-  print(rating)   
+  print("Rating :",rating, "%")   
   #return rating
 
 def detection():
@@ -319,10 +319,10 @@ def post_processing(img, conf_thresh, nms_thresh, output):
 
     t3 = time.time()
 
-    # print('-----------------------------------')
-    # print('       max and argmax : %f' % (t2 - t1))
-    # print('                  nms : %f' % (t3 - t2))
-    # print('Post processing total : %f' % (t3 - t1))
-    # print('-----------------------------------')
+     print('-----------------------------------')
+     print('       max and argmax : %f' % (t2 - t1))
+     print('                  nms : %f' % (t3 - t2))
+     print('Post processing total : %f' % (t3 - t1))
+     print('-----------------------------------')
 
     return bboxes_batch
