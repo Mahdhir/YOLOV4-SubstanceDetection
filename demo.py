@@ -80,7 +80,7 @@ def detect_video(cfgfile, weightfile,vidfile):
     elif num_classes == 80:
         namesfile = './data/classes/coco.names'
     elif num_classes == 2 :
-        namesfile = '/content/drive/MyDrive/FYP/YOLOV4-SubstanceDetection/data/classes/custom.names'
+        namesfile = '/content/YOLOV4-SubstanceDetection/data/classes/custom.names'
     class_names = load_class_names(namesfile)
 
     global tot_frames
