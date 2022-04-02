@@ -76,14 +76,17 @@ def detect_video(cfgfile, weightfile,vidfile):
 
     num_classes = m.num_classes
     if num_classes == 20:
-        namesfile = 'data/classes/voc.names'
+        namesfile = './data/classes/voc.names'
     elif num_classes == 80:
-        namesfile = 'data/classes/coco.names'
+        namesfile = './data/classes/coco.names'
     elif num_classes == 2 :
-        namesfile = 'data/classes/custom.names'
+        namesfile = '/content/drive/MyDrive/FYP/YOLOV4-SubstanceDetection/data/classes/custom.names'
     class_names = load_class_names(namesfile)
 
     global tot_frames
+    if (cap.isOpened()== False):
+      print("Error opening video stream or file, try a different video format!")
+
     while True:
         ret, img = cap.read()
         if not ret:

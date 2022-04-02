@@ -189,22 +189,12 @@ def module_rating():
   #     rating += 50
   # elif count_subs > 1 :
   #      rating += 65
-  print("Rating :",rating, "%")   
-  #return rating
+  #print("Rating :",rating, "%")   
+  detection(rating)
 
-def detection():
+def detection(rating):
     import json
-
-    if(detection_time_c1 > 10 and detection_time_c3 > 10): #Full frontal nudity for more than 10 secs
-        moduleRating = 100 #NC17
-    elif(detection_time_c1 > 1 and detection_time_c3 > 1): #Full frontal nudity for more than 1 sec
-        moduleRating = 75 #R
-    elif(detection_time_c1 > 0 or detection_time_c3 > 0): #Brief frontal nudity (1 sec or less)
-        moduleRating = 50 #PG13
-    elif(detection_time_c2 >= 1): #No frontal nudity 
-        moduleRating = 25 #PG
-    else:
-        moduleRating = 0 #G
+    moduleRating = rating
 
     data = {"moduleRating": moduleRating,
             "detectionInstances": []}
@@ -319,10 +309,10 @@ def post_processing(img, conf_thresh, nms_thresh, output):
 
     t3 = time.time()
 
-    # print('-----------------------------------')
-    # print('       max and argmax : %f' % (t2 - t1))
-    # print('                  nms : %f' % (t3 - t2))
-    # print('Post processing total : %f' % (t3 - t1))
-    # print('-----------------------------------')
+    print('-----------------------------------')
+    print('       max and argmax : %f' % (t2 - t1))
+    print('                  nms : %f' % (t3 - t2))
+    print('Post processing total : %f' % (t3 - t1))
+    print('-----------------------------------')
 
     return bboxes_batch
